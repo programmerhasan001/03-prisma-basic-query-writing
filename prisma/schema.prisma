@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model categories {
+  id        Int        @id @default(autoincrement())
+  name      String     @db.VarChar(50)
+  user_id   Int
+  createdAt DateTime   @default(now()) @db.Timestamp(0)
+  updatedAt DateTime   @default(now()) @db.Timestamp(0)
+  users     users      @relation(fields: [user_id], references: [id])
+  products  products[]
+
+  @@index([user_id], map: "categories_user_id_fkey")
+}
+
+model customers {
+  id        Int        @id @default(autoincrement())
+  name      String     @db.VarChar(50)
+  email     String     @db.VarChar(50)
+  mobile    String     @db.VarChar(50)
+  user_id   Int
+  createdAt DateTime   @default(now()) @db.Timestamp(0)
+  updatedAt DateTime   @default(now()) @db.Timestamp(0)
+  users     users      @relation(fields: [user_id], references: [id])
+  invoices  invoices[]
+
+  @@index([user_id], map: "customers_user_id_fkey")
+}
+
+model invoice_products {
+  id         Int      @id @default(autoincrement())
+  qty        String   @db.VarChar(50)
+  sale_price String   @db.VarChar(50)
+  user_id    Int
+  product_id Int
+  invoice_id Int
+  createdAt  DateTime @default(now()) @db.Timestamp(0)
+  updatedAt  DateTime @default(now()) @db.Timestamp(0)
+  invoices   invoices @relation(fields: [invoice_id], references: [id])
+  products   products @relation(fields: [product_id], references: [id])
+  users      users    @relation(fields: [user_id], references: [id])
+
+  @@index([invoice_id], map: "invoice_products_invoice_id_fkey")
+  @@index([product_id], map: "invoice_products_product_id_fkey")
+  @@index([user_id], map: "invoice_products_user_id_fkey")
+}
+
+model invoices {
+  id               Int                @id @default(autoincrement())
+  total            String             @db.VarChar(50)
+  discount         String             @db.VarChar(50)
+  vat              String             @db.VarChar(50)
+  payable          String             @db.VarChar(50)
+  user_id          Int
+  customer_id      Int
+  createdAt        DateTime           @default(now()) @db.Timestamp(0)
+  updatedAt        DateTime           @default(now()) @db.Timestamp(0)
+  invoice_products invoice_products[]
+  customers        customers          @relation(fields: [customer_id], references: [id])
+  users            users              @relation(fields: [user_id], references: [id])
+
+  @@index([customer_id], map: "invoices_customer_id_fkey")
+  @@index([user_id], map: "invoices_user_id_fkey")
+}
+
+model products {
+  id               Int                @id @default(autoincrement())
+  name             String             @db.VarChar(50)
+  price            String             @db.VarChar(50)
+  unit             String             @db.VarChar(50)
+  user_id          Int
+  category_id      Int
+  createdAt        DateTime           @default(now()) @db.Timestamp(0)
+  updatedAt        DateTime           @default(now()) @db.Timestamp(0)
+  invoice_products invoice_products[]
+  categories       categories         @relation(fields: [category_id], references: [id])
+  users            users              @relation(fields: [user_id], references: [id])
+
+  @@index([category_id], map: "products_category_id_fkey")
+  @@index([user_id], map: "products_user_id_fkey")
+}
+
+model users {
+  id               Int                @id @default(autoincrement())
+  firstName        String             @db.VarChar(50)
+  lastName         String             @db.VarChar(50)
+  email            String             @unique @db.VarChar(50)
+  moible           String             @db.VarChar(50)
+  password         String             @db.VarChar(50)
+  opt              String             @default("0") @db.VarChar(50)
+  createdAt        DateTime           @default(now()) @db.Timestamp(0)
+  updatedAt        DateTime           @default(now()) @db.Timestamp(0)
+  categories       categories[]
+  customers        customers[]
+  invoice_products invoice_products[]
+  invoices         invoices[]
+  products         products[]
+}
